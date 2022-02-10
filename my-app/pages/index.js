@@ -27,8 +27,6 @@ export default function Home() {
   const [numProposals, setNumProposals] = useState('0');
   // Array of all proposals created in the DAO
   const [proposals, setProposals] = useState([]);
-  // Will return true if there is any proposal been made
-  const [hasProposalMade, setHasProposalMade] = useState(false);
   // User's balance of HalftoneEth NFTs
   const [nftBalance, setNftBalance] = useState(0);
   // Fake NFT Token ID to purchase. Used when creating a proposal.
@@ -120,10 +118,11 @@ export default function Home() {
               providerOptions: {},
               disableInjectedProvider: false,
             });
-            connectWallet();
-            getDAOTreasuryBalance();
-            getUserNFTBalance();
-            getNumProposalsInDAO();
+            connectWallet().then(() => {
+              getDAOTreasuryBalance();
+              getUserNFTBalance();
+              getNumProposalsInDAO();
+            });
           }
         } else {
           showToast('error', 'Please connect your MetaMask wallet.');
@@ -221,7 +220,6 @@ export default function Home() {
         proposals.push(proposal);
       }
       setProposals(proposals);
-      proposals.length > 0 ? setHasProposalMade(1) : setHasProposalMade(0);
       return proposals;
     } catch (error) {
       console.error(error);
@@ -383,7 +381,7 @@ export default function Home() {
           Loading... Waiting for transaction...
         </div>
       );
-    } else if (!hasProposalMade && proposals.length === 0) {
+    } else if (proposals.length === 0) {
       return (
         <div className={styles.description}>No proposals have been created</div>
       );
@@ -435,81 +433,6 @@ export default function Home() {
     }
   }
 
-  /**
-   * renderButton: Returns a button based on the state of the dapp
-   */
-  const renderButton = () => {
-    if (walletConnected) {
-      // If we are currently waiting for something, return a loading button
-      if (loading) {
-        return (
-          <div>
-            <button className={styles.button}>Loading...</button>
-          </div>
-        );
-      }
-
-      return (
-        <div>
-          <div className={styles.description}>
-            Your HalftoneEth NFT Balance:{' '}
-            <span className={styles.styledNumber}>
-              <b>{nftBalance}</b>
-            </span>{' '}
-            <br />
-            Treasury Balance:{' '}
-            <span className={styles.styledNumber}>
-              <b>{formatEther(treasuryBalance)}</b>
-            </span>{' '}
-            ETH
-            <br />
-            Total Number of Proposals:{' '}
-            <span className={styles.styledNumber}>
-              <b>{numProposals}</b>
-            </span>{' '}
-          </div>
-          <div className={styles.flex}>
-            <button
-              className={styles.button}
-              onClick={() => {
-                nftBalance === 0
-                  ? showToast(
-                      'error',
-                      'Please claim or mint some HalftoneEth NFTs!'
-                    )
-                  : null;
-                setSelectedTab('Create Proposal');
-              }}
-            >
-              Create Proposal
-            </button>
-            <button
-              className={styles.button}
-              onClick={() => {
-                !hasProposalMade
-                  ? showToast(
-                      'error',
-                      'Sorry, currently there are no proposal.'
-                    )
-                  : null;
-                setSelectedTab('View Proposals');
-              }}
-            >
-              View Proposals
-            </button>
-          </div>
-          {renderTabs()}
-        </div>
-      );
-    } else if (!walletConnected) {
-      return (
-        <button onClick={connectWallet} className={styles.button}>
-          Connect your wallet
-        </button>
-      );
-    }
-  };
-
   return (
     <div>
       <Head>
@@ -547,7 +470,54 @@ export default function Home() {
               <span className={styles.linkText}>HET Token</span>
             </a>
           </div>
-          {renderButton()}
+          {walletConnected ? (
+            <>
+              <div className={styles.description}>
+                Your HalftoneEth NFT Balance:{' '}
+                <span className={styles.styledNumber}>
+                  <b>{nftBalance}</b>
+                </span>{' '}
+                <br />
+                Treasury Balance:{' '}
+                <span className={styles.styledNumber}>
+                  <b>{formatEther(treasuryBalance)}</b>
+                </span>{' '}
+                ETH
+                <br />
+                Total Number of Proposals:{' '}
+                <span className={styles.styledNumber}>
+                  <b>{numProposals}</b>
+                </span>{' '}
+              </div>
+              <div className={styles.flex}>
+                <button
+                  className={styles.button}
+                  onClick={() => {
+                    nftBalance === 0
+                      ? showToast(
+                          'error',
+                          'Please claim or mint some HalftoneEth NFTs!'
+                        )
+                      : null;
+                    setSelectedTab('Create Proposal');
+                  }}
+                >
+                  Create Proposal
+                </button>
+                <button
+                  className={styles.button}
+                  onClick={() => setSelectedTab('View Proposals')}
+                >
+                  View Proposals
+                </button>
+              </div>
+              {renderTabs()}
+            </>
+          ) : (
+            <button onClick={connectWallet} className={styles.button}>
+              Connect your wallet
+            </button>
+          )}
         </div>
         <div>
           <img className={styles.image} src="/00.svg" />
