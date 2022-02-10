@@ -83,6 +83,7 @@ export default function Home() {
         // get the provider from web3modal (metamask)
         // for the first-time user, it prompts user to connect their wallet
         await getProviderOrSigner();
+        setWalletConnected(true);
       } else {
         showToast('error', 'Please install MetaMask!');
         return;
@@ -280,7 +281,7 @@ export default function Home() {
         throw new Error('Please switch to the Rinkeby network');
       }
 
-      setWalletConnected(true);
+      // setWalletConnected(true);
       if (needSigner) {
         const signer = web3Provider.getSigner();
         return signer;
