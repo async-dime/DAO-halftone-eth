@@ -280,11 +280,11 @@ export default function Home() {
         throw new Error('Please switch to the Rinkeby network');
       }
 
+      setWalletConnected(true);
       if (needSigner) {
         const signer = web3Provider.getSigner();
         return signer;
       }
-      setWalletConnected(true);
       return web3Provider;
     } catch (err) {
       console.error(err);
