@@ -76,62 +76,30 @@ export default function Home() {
   };
 
   // Helper function to connect wallet
+  // Helper function to connect wallet
   const connectWallet = async () => {
-    const { ethereum } = window;
     try {
-      if (ethereum) {
-        // get the provider from web3modal (metamask)
-        // for the first-time user, it prompts user to connect their wallet
-        await getProviderOrSigner();
-        setWalletConnected(true);
-      } else {
-        showToast('error', 'Please install MetaMask!');
-        return;
-      }
-    } catch (err) {
-      console.error(err);
-      showToast('error', err.data.message);
+      // get the provider from web3modal (metamask)
+      // for the first-time user, it prompts user to connect their wallet
+      await getProviderOrSigner();
+    } catch (error) {
+      console.error(error);
     }
   };
 
   const checkIfWalletIsConnected = async () => {
-    const { ethereum } = window;
-    try {
-      if (!ethereum) {
-        showToast('error', 'Make sure you have MetaMask!');
-        return;
-      } else {
-        showToast('success', `We have the ethereum object: ${ethereum}`);
+    if (!walletConnected) {
+      web3ModalRef.current = new Web3Modal({
+        network: 'rinkeby',
+        providerOptions: {},
+        disableInjectedProvider: false,
+      });
 
-        // Check if we're authorized to access the user's wallet
-        const accounts = await ethereum.request({ method: 'eth_accounts' });
-
-        if (accounts.length !== 0) {
-          const account = accounts[0];
-          showToast('success', `Found a wallet address: ${account}.`);
-
-          // if wallet is not connected, create a new instance of Web3Modal and connect the MetaMask wallet
-          if (!walletConnected) {
-            // Assign the Web3Modal class to the reference object by setting it's `current` value
-            // The `current` value is persisted throughout as long as this page is open
-            web3ModalRef.current = new Web3Modal({
-              network: 'rinkeby',
-              providerOptions: {},
-              disableInjectedProvider: false,
-            });
-            connectWallet().then(() => {
-              getDAOTreasuryBalance();
-              getUserNFTBalance();
-              getNumProposalsInDAO();
-            });
-          }
-        } else {
-          showToast('error', 'Please connect your MetaMask wallet.');
-          return;
-        }
-      }
-    } catch (error) {
-      console.error(error);
+      connectWallet().then(() => {
+        getDAOTreasuryBalance();
+        getUserNFTBalance();
+        getNumProposalsInDAO();
+      });
     }
   };
 
@@ -244,8 +212,8 @@ export default function Home() {
       await fetchAllProposals();
       showToast('success', 'Successfully voted on Proposal!');
     } catch (error) {
-      console.error(error);
-      showToast('error', `Failed to vote Proposal : ${error.data.message}`);
+      // console.error(error);
+      showToast('error', `Failed to vote Proposal : ${error.error.message}`);
     }
   };
 
@@ -265,32 +233,28 @@ export default function Home() {
       showToast('success', 'Successfully executing Proposal!');
     } catch (error) {
       console.error(error);
-      showToast('error', `Failed to execute Proposal : ${error.data.message}`);
+      showToast('error', `Failed to execute Proposal : ${error.message}`);
     }
   };
 
   // Helper function to fetch a Provider/Signer instance from Metamask
   const getProviderOrSigner = async (needSigner = false) => {
-    try {
-      const provider = await web3ModalRef.current.connect();
-      const web3Provider = new providers.Web3Provider(provider);
+    const provider = await web3ModalRef.current.connect();
+    const web3Provider = new providers.Web3Provider(provider);
 
-      const { chainId } = await web3Provider.getNetwork();
-      if (chainId !== 4) {
-        showToast('error', 'Change the network to Rinkeby');
-        throw new Error('Please switch to the Rinkeby network');
-      }
-
-      // setWalletConnected(true);
-      if (needSigner) {
-        const signer = web3Provider.getSigner();
-        return signer;
-      }
-      return web3Provider;
-    } catch (err) {
-      console.error(err);
-      showToast('error', 'Please install MetaMask!');
+    const { chainId } = await web3Provider.getNetwork();
+    if (chainId !== 4) {
+      window.alert('Please switch to the Rinkeby network!');
+      throw new Error('Please switch to the Rinkeby network');
     }
+
+    // setWalletConnected(true);
+    if (needSigner) {
+      const signer = web3Provider.getSigner();
+      return signer;
+    }
+    setWalletConnected(true);
+    return web3Provider;
   };
 
   // Helper function to return a DAO Contract instance
@@ -424,7 +388,9 @@ export default function Home() {
                 </div>
               ) : (
                 <div className={styles.description}>
-                  <b>Proposal Executed</b>
+                  <span className={styles.linkText}>
+                    <b>Proposal Executed</b>
+                  </span>
                 </div>
               )}
             </div>

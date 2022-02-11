@@ -5,7 +5,7 @@ import cx from 'classnames';
 const Toast = (props) => {
   const { toastList } = props;
   const [list, setList] = useState(toastList);
-  const dismissTime = 3000;
+  const dismissTime = 3000000;
 
   const deleteToast = (id) => {
     const index = list.findIndex((e) => e.id === id);

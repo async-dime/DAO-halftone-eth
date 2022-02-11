@@ -132,6 +132,7 @@
 .linkText,
 .footerText,
 .styledNumber,
+.styledText,
 .progressBar {
   background-image: linear-gradient(
     to right,
@@ -143,7 +144,8 @@
 .header,
 .linkText,
 .footerText,
-.styledNumber {
+.styledNumber,
+.styledText {
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
